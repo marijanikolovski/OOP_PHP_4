@@ -59,16 +59,65 @@ class Room3Factory implements RoomFactory{
     }
 }
 
+class Hotel {
+    private static $instance;
+    public $rooms = [];
+
+    static function getInstance() {
+        if (self::$instance === null) {
+            self::$instance = new Hotel();
+        }
+        return self::$instance;
+    }
+
+    public function setRoom(Room $room) {
+        $roomClass = get_class($room);
+        $this->rooms[$roomClass][] = $room;
+    }
+
+    public function getRoom() {
+        return $this->rooms;
+    }
+
+    public function freeRoom($type) {
+        return count($this->rooms[$type]);
+    }
+
+    public function checkRoom(Room $room)
+    {
+        $roomClass = get_class($room);
+        if (count($this->rooms[$roomClass]) === 0) {
+            echo 'Out of stock';
+        }
+        array_pop($this->rooms[$roomClass]);
+    }
+}
+
+
 $roomFactory1 = new Room1Factory();
 $room1 = $roomFactory1->makeRoom('125', true, false);
 
-$roomFactory2 = new Room1Factory();
+$roomFactory2 = new Room2Factory();
 $room2 = $roomFactory2->makeRoom('126', true, true);
 
-$roomFactory3 = new Room1Factory();
+$roomFactory3 = new Room3Factory();
 $room3 = $roomFactory3->makeRoom('127', true, true);
 
+$hotel = Hotel::getInstance();
+$hotel->setRoom($room1);
+$hotel->getRoom();
+
+$hotel->setRoom($room2);
+$hotel->getRoom();
+
+$hotel->setRoom($room3);
+$hotel->getRoom();
+
+$hotel->checkRoom($room2);
+
 echo '<pre>';
-var_dump($room1);
-var_dump($room2);
-var_dump($room3);
+var_dump($hotel);
+
+echo $hotel->freeRoom(Room1::class);
+echo $hotel->freeRoom(Room2::class);
+echo $hotel->freeRoom(Room3::class);
