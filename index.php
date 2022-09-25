@@ -62,6 +62,7 @@ class Room3Factory implements RoomFactory{
 class Hotel {
     private static $instance;
     public $rooms = [];
+    public $waitingList = [];
 
     static function getInstance() {
         if (self::$instance === null) {
@@ -83,13 +84,41 @@ class Hotel {
         return count($this->rooms[$type]);
     }
 
-    public function checkRoom(Room $room)
+    public function checkRoom(Room $room, User $user)
     {
         $roomClass = get_class($room);
         if (count($this->rooms[$roomClass]) === 0) {
             echo 'Out of stock';
+            $this->waitingList[] = $user;
+            echo $user->firstName . ' has been added to the waiting list';
         }
         array_pop($this->rooms[$roomClass]);
+        echo $user->firstName . ' was given a room';
+    }
+
+    public function outRoom(Room $room) {
+        $roomClass = get_class($room);
+        $this->rooms[$roomClass][] = $room;
+        if (count($this->rooms[$roomClass]) > 0) {
+            if(count($this->waitingList) > 0) {
+                echo 'Room is free';
+                $user = array_pop($this->waitingList);
+                $this->checkRoom($room, $user);
+            }
+        }
+    }
+}
+
+class User {
+    public $firstName;
+    public $lastName;
+    public $jmbg;
+
+    public function __construct($firstName, $lastName, $jmbg)
+    {
+        $this->firstName = $firstName;
+        $this->lastName = $lastName;
+        $this->jmbg = $jmbg;
     }
 }
 
@@ -113,7 +142,15 @@ $hotel->getRoom();
 $hotel->setRoom($room3);
 $hotel->getRoom();
 
-$hotel->checkRoom($room2);
+$milan = new User('Milan', 'Milovanovic', '12367');
+$vukasin = new User('Vukasin', 'Milovanovic', '12367');
+$jovan = new User('Jovan', 'Jovanovic', '1258');
+$stribor= new User('Stribor', 'Jovanovic', '33258');
+
+$hotel->checkRoom($room1, $milan);
+$hotel->checkRoom($room2, $vukasin);
+$hotel->checkRoom($room3, $jovan);
+$hotel->checkRoom($room1, $stribor);
 
 echo '<pre>';
 var_dump($hotel);
